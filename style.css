@@ -1,0 +1,61 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Croissant One', cursive;
+}
+body{
+    overflow: hidden;
+}
+
+
+
+/*Start-game*/
+.container-start-game{
+    position: relative;
+}
+.container__head{
+    padding: 24px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+.header__timer {
+    font-size: 20px;
+    color: white;
+}
+.header__timer.active{
+    font-size: 28px;
+    color: red;
+}
+
+.header__counter {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.count__progress {
+    font-size: 20px;
+    color: white;
+}
+.count__progress:after{
+    content: '/';
+    display: inline-block;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.count__need {
+    font-size: 20px;
+    color: white;
+}
+#render-canvas{
+    width: 100vw;
+    height: 100vh;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Runner",
+  "star_url": "index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "img/Chest_Ignots.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
