@@ -1,12 +1,12 @@
 {
-  "name": "Runner",
+  "name": "Treasure hunter",
   "star_url": "index.html",
   "display": "fullscreen",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "img/Chest_Ignots.png",
-      "sizes": "512x512",
+      "src": "img/Chest_Ingots.png",
+      "sizes": "1000x1000",
       "type": "image/png"
     }
   ]

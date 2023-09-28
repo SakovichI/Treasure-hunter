@@ -1,9 +1,9 @@
-
-const startGame = (time, countTreasure)=>{
-  const canvas = document.querySelector("#render-canvas");
-  const timer = document.querySelector('.header__timer');
-  const countProgress = document.querySelector('.count__progress');
-  const countAll = document.querySelector('.count__need');
+const canvas = document.querySelector("#render-canvas");
+const timer = document.querySelector('.header__timer');
+const countProgress = document.querySelector('.count__progress');
+const countAll = document.querySelector('.count__need');
+const gameOverScreen = document.querySelector('.game-over')
+const startGame = (time, countTreasure) => {
   const engine = new BABYLON.Engine(canvas, true, {
     preserveDrawingBuffer: true,
     stencil: true,
@@ -18,7 +18,7 @@ const startGame = (time, countTreasure)=>{
     const scene = new BABYLON.Scene(engine);
     // initialize plugin
     scene.enablePhysics();
-      const camera = new BABYLON.ArcRotateCamera(
+    const camera = new BABYLON.ArcRotateCamera(
       "camera1",
       CAMERA_ALPHA,
       CAMERA_BETA,
@@ -39,10 +39,34 @@ const startGame = (time, countTreasure)=>{
     shadowGenerator.blurScale = 2;
     shadowGenerator.setDarkness(0.4);
 //Create audio
-//     const fonAudio = new BABYLON.Sound("Music", "./audio/mainfon.mp3", scene, null, {
-//       loop: true,
-//       autoplay: true,
-//     });
+    BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
+    const fonAudio = new BABYLON.Sound("Music", "./audio/main-menu.mp3", scene, null, {
+      loop: true,
+      autoplay:true,
+      volume: 0.05
+    });
+    const runAudio = new BABYLON.Sound("run", "./audio/run.mp3", scene, null, {
+      loop: true,
+      volume: 0.25,
+    });
+    const fastRunAudio = new BABYLON.Sound("fastRun", "./audio/fast-run.mp3", scene, null, {
+      loop: true,
+      volume: 0.25,
+    });
+    const treasureAudio = new BABYLON.Sound("treasure", "./audio/treasure.mp3", scene, null, {
+      volume: 0.2,
+      length: 1.2
+    });
+    const gameOverAudio = new BABYLON.Sound("gameOver", "./audio/gameover.mp3", scene, null, {
+      volume: 0.3
+    });
+    const victoryAudio = new BABYLON.Sound("victory", "./audio/victory.mp3", scene, null, {
+      volume: 0.3
+    });
+    const timeOutAudio = new BABYLON.Sound("timeOut", "./audio/time-out.mp3", scene, null, {
+      loop: true,
+      volume: 0.4
+    });
 //Skybox
     const skybox = BABYLON.Mesh.CreateBox("skyBox", 2000.0, scene);
     const skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
@@ -202,7 +226,11 @@ const startGame = (time, countTreasure)=>{
         restitution: 0
       }, scene);
       wallLeftPort1.isVisible = false;
-      const wallRightPort1 = new BABYLON.MeshBuilder.CreateBox('wallRightPort', {width: 20, height: 20, depth: 1}, scene);
+      const wallRightPort1 = new BABYLON.MeshBuilder.CreateBox('wallRightPort', {
+        width: 20,
+        height: 20,
+        depth: 1
+      }, scene);
       wallRightPort1.position = new BABYLON.Vector3(-60.0, 3.0, -5)
       wallRightPort1.physicsImpostor = new BABYLON.PhysicsImpostor(wallRightPort1, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0,
@@ -225,7 +253,7 @@ const startGame = (time, countTreasure)=>{
     })
     //Бочки
     const barrelArray = []
-    const createBarrel = (x, z)=>{
+    const createBarrel = (x, z) => {
       new BABYLON.SceneLoader.ImportMeshAsync(
         null,
         "./public/",
@@ -252,24 +280,24 @@ const startGame = (time, countTreasure)=>{
     createBarrel(-50, 0);
 
     //Здания
-    const creatHouse = (x,z)=>{
+    const creatHouse = (x, z) => {
       new BABYLON.SceneLoader.ImportMeshAsync(
         null,
         "./public/",
         "Houses.gltf", scene).then((result) => {
         const [house] = result.meshes;
         shadowGenerator.addShadowCaster(house)
-        house.position = new BABYLON.Vector3 (x, 3.5, z);
-        house.scaling = new BABYLON.Vector3(15,15,15);
-        house.rotation= new BABYLON.Vector3(0, 1.58,0)
-        const house1Box = new BABYLON.MeshBuilder.CreateBox ('house1Box', {width: 10, height:6, depth:15},scene)
-        house1Box.position = new BABYLON.Vector3 (x-7, 5.5, z-1.5)
+        house.position = new BABYLON.Vector3(x, 3.5, z);
+        house.scaling = new BABYLON.Vector3(15, 15, 15);
+        house.rotation = new BABYLON.Vector3(0, 1.58, 0)
+        const house1Box = new BABYLON.MeshBuilder.CreateBox('house1Box', {width: 10, height: 6, depth: 15}, scene)
+        house1Box.position = new BABYLON.Vector3(x - 7, 5.5, z - 1.5)
         house1Box.isVisible = false;
         house1Box.physicsImpostor = new BABYLON.PhysicsImpostor(house1Box, BABYLON.PhysicsImpostor.BoxImpostor, {
           mass: 0
         }, scene);
-        const house2Box = new BABYLON.MeshBuilder.CreateBox ('house2Box', {width: 8, height:6, depth:16},scene)
-        house2Box.position = new BABYLON.Vector3 (x+5, 5.5,z+2.5);
+        const house2Box = new BABYLON.MeshBuilder.CreateBox('house2Box', {width: 8, height: 6, depth: 16}, scene)
+        house2Box.position = new BABYLON.Vector3(x + 5, 5.5, z + 2.5);
         house2Box.isVisible = false;
         house2Box.physicsImpostor = new BABYLON.PhysicsImpostor(house2Box, BABYLON.PhysicsImpostor.BoxImpostor, {
           mass: 0
@@ -282,26 +310,26 @@ const startGame = (time, countTreasure)=>{
       })
     }
     //Row1 house
-    for (let i = 0; i<5; i++){
-      creatHouse(i*25,98)
+    for (let i = 0; i < 5; i++) {
+      creatHouse(i * 25, 98)
     }
     //Row2 house
-    for (let i = 0; i<5; i++){
-      creatHouse(i*25,38)
+    for (let i = 0; i < 5; i++) {
+      creatHouse(i * 25, 38)
     }
     //Create Farm
-    const creatFarm = (x,z)=>{
+    const creatFarm = (x, z) => {
       new BABYLON.SceneLoader.ImportMeshAsync(
         null,
         "./public/",
         "Farm.gltf", scene).then((result) => {
         const [farm] = result.meshes;
         shadowGenerator.addShadowCaster(farm)
-        farm.position = new BABYLON.Vector3 (x, 3.5, z);
-        farm.scaling = new BABYLON.Vector3(12,12,12);
-        farm.rotation= new BABYLON.Vector3(0, 0,0)
-        const farmBox = new BABYLON.MeshBuilder.CreateBox ('farmBox', {width: 8, height:6, depth:8},scene)
-        farmBox.position = new BABYLON.Vector3 (x-6, 5.5, z-7)
+        farm.position = new BABYLON.Vector3(x, 3.5, z);
+        farm.scaling = new BABYLON.Vector3(12, 12, 12);
+        farm.rotation = new BABYLON.Vector3(0, 0, 0)
+        const farmBox = new BABYLON.MeshBuilder.CreateBox('farmBox', {width: 8, height: 6, depth: 8}, scene)
+        farmBox.position = new BABYLON.Vector3(x - 6, 5.5, z - 7)
         farmBox.isVisible = false;
         farmBox.physicsImpostor = new BABYLON.PhysicsImpostor(farmBox, BABYLON.PhysicsImpostor.BoxImpostor, {
           mass: 0
@@ -312,8 +340,8 @@ const startGame = (time, countTreasure)=>{
         farm.addChild(farmBox);
       })
     }
-    for (let i = 0; i<5; i++){
-      creatFarm(i*25,70)
+    for (let i = 0; i < 5; i++) {
+      creatFarm(i * 25, 70)
     }
     //create center
     new BABYLON.SceneLoader.ImportMeshAsync(
@@ -321,13 +349,13 @@ const startGame = (time, countTreasure)=>{
       "./public/",
       "Center.gltf", scene).then((result) => {
       const [center] = result.meshes;
-      center.scaling = new BABYLON.Vector3(15,10,15);
-      center.position = new BABYLON.Vector3(50,3.5,0);
-      center.rotation = new BABYLON.Vector3(0,-3.14,0);
+      center.scaling = new BABYLON.Vector3(15, 10, 15);
+      center.position = new BABYLON.Vector3(50, 3.5, 0);
+      center.rotation = new BABYLON.Vector3(0, -3.14, 0);
       shadowGenerator.addShadowCaster(center);
-      const centerBox = new BABYLON.MeshBuilder.CreateBox ('centerBox', {width: 26, height:3, depth:26},scene)
-      centerBox.position = new BABYLON.Vector3(50,3.5,0);
-      centerBox.isVisible=false;
+      const centerBox = new BABYLON.MeshBuilder.CreateBox('centerBox', {width: 26, height: 3, depth: 26}, scene)
+      centerBox.position = new BABYLON.Vector3(50, 3.5, 0);
+      centerBox.isVisible = false;
       centerBox.physicsImpostor = new BABYLON.PhysicsImpostor(centerBox, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0
       }, scene);
@@ -337,26 +365,26 @@ const startGame = (time, countTreasure)=>{
       center.addChild(centerBox);
     })
 //Create Market
-    const creatMarket = (x,z, rotate)=>{
+    const creatMarket = (x, z, rotate) => {
       new BABYLON.SceneLoader.ImportMeshAsync(
         null,
         "./public/",
         "Market.gltf", scene).then((result) => {
         const [market] = result.meshes;
         shadowGenerator.addShadowCaster(market)
-        market.position = new BABYLON.Vector3 (x, 3.5, z);
-        market.scaling = new BABYLON.Vector3(15,15,15);
-        market.rotation= new BABYLON.Vector3(0, rotate,0)
-        const market1Box = new BABYLON.MeshBuilder.CreateBox ('market1Box', {width: 28, height:6, depth:10},scene)
-        market1Box.position = new BABYLON.Vector3 (x+0, 5.5, z-8)
-        market1Box.rotation =new BABYLON.Vector3(0, 0,0)
+        market.position = new BABYLON.Vector3(x, 3.5, z);
+        market.scaling = new BABYLON.Vector3(15, 15, 15);
+        market.rotation = new BABYLON.Vector3(0, rotate, 0)
+        const market1Box = new BABYLON.MeshBuilder.CreateBox('market1Box', {width: 28, height: 6, depth: 10}, scene)
+        market1Box.position = new BABYLON.Vector3(x + 0, 5.5, z - 8)
+        market1Box.rotation = new BABYLON.Vector3(0, 0, 0)
         market1Box.isVisible = false;
         market1Box.physicsImpostor = new BABYLON.PhysicsImpostor(market1Box, BABYLON.PhysicsImpostor.BoxImpostor, {
           mass: 0
         }, scene);
-        const market2Box = new BABYLON.MeshBuilder.CreateBox ('market2Box', {width: 28, height:6, depth:14},scene)
-        market2Box.position = new BABYLON.Vector3 (x+0, 5.5,z+8);
-        market2Box.rotation =new BABYLON.Vector3(0, 0,0)
+        const market2Box = new BABYLON.MeshBuilder.CreateBox('market2Box', {width: 28, height: 6, depth: 14}, scene)
+        market2Box.position = new BABYLON.Vector3(x + 0, 5.5, z + 8);
+        market2Box.rotation = new BABYLON.Vector3(0, 0, 0)
         market2Box.isVisible = false;
         market2Box.physicsImpostor = new BABYLON.PhysicsImpostor(market2Box, BABYLON.PhysicsImpostor.BoxImpostor, {
           mass: 0
@@ -368,11 +396,11 @@ const startGame = (time, countTreasure)=>{
         market.addChild(market2Box);
       })
     }
-    for (let i = 0; i<2; i++){
-      creatMarket((i*80)+10,5, 1.55)
+    for (let i = 0; i < 2; i++) {
+      creatMarket((i * 80) + 10, 5, 1.55)
     }
-    for (let i = 0; i<2; i++){
-      creatMarket((i*80)+10,-32, 1.55)
+    for (let i = 0; i < 2; i++) {
+      creatMarket((i * 80) + 10, -32, 1.55)
     }
     //Create Temple
     new BABYLON.SceneLoader.ImportMeshAsync(
@@ -380,13 +408,13 @@ const startGame = (time, countTreasure)=>{
       "./public/",
       "Temple.gltf", scene).then((result) => {
       const [temple] = result.meshes;
-      temple.scaling = new BABYLON.Vector3(18,18,18);
-      temple.position = new BABYLON.Vector3(50,3.5,-45);
-      temple.rotation = new BABYLON.Vector3(0,-3.14,0);
+      temple.scaling = new BABYLON.Vector3(18, 18, 18);
+      temple.position = new BABYLON.Vector3(50, 3.5, -45);
+      temple.rotation = new BABYLON.Vector3(0, -3.14, 0);
       shadowGenerator.addShadowCaster(temple);
-      const templeBox = new BABYLON.MeshBuilder.CreateBox ('templeBox', {width: 38, height:10, depth:38},scene)
-      templeBox.position = new BABYLON.Vector3(50,5.5,-45);
-      templeBox.isVisible=false;
+      const templeBox = new BABYLON.MeshBuilder.CreateBox('templeBox', {width: 38, height: 10, depth: 38}, scene)
+      templeBox.position = new BABYLON.Vector3(50, 5.5, -45);
+      templeBox.isVisible = false;
       templeBox.physicsImpostor = new BABYLON.PhysicsImpostor(templeBox, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0
       }, scene);
@@ -401,28 +429,28 @@ const startGame = (time, countTreasure)=>{
       "./public/",
       "Archery.gltf", scene).then((result) => {
       const [archery] = result.meshes;
-      archery.scaling = new BABYLON.Vector3(18,18,18);
-      archery.position = new BABYLON.Vector3(100,3.5,-90);
-      archery.rotation = new BABYLON.Vector3(0,0,0);
+      archery.scaling = new BABYLON.Vector3(18, 18, 18);
+      archery.position = new BABYLON.Vector3(100, 3.5, -90);
+      archery.rotation = new BABYLON.Vector3(0, 0, 0);
       shadowGenerator.addShadowCaster(archery);
-      const archeryBox = new BABYLON.MeshBuilder.CreateBox ('archeryBox', {width: 28, height:10, depth:10},scene)
-      archeryBox.position = new BABYLON.Vector3(97,5.5,-100);
-      archeryBox.isVisible=false;
+      const archeryBox = new BABYLON.MeshBuilder.CreateBox('archeryBox', {width: 28, height: 10, depth: 10}, scene)
+      archeryBox.position = new BABYLON.Vector3(97, 5.5, -100);
+      archeryBox.isVisible = false;
       archeryBox.physicsImpostor = new BABYLON.PhysicsImpostor(archeryBox, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0
       }, scene);
-      const archery1Box = new BABYLON.MeshBuilder.CreateBox ('archery1Box', {width: 12, height:10, depth:25},scene)
-      archery1Box.position = new BABYLON.Vector3(112,5.5,-93);
-      archery1Box.isVisible=false;
+      const archery1Box = new BABYLON.MeshBuilder.CreateBox('archery1Box', {width: 12, height: 10, depth: 25}, scene)
+      archery1Box.position = new BABYLON.Vector3(112, 5.5, -93);
+      archery1Box.isVisible = false;
       archery1Box.physicsImpostor = new BABYLON.PhysicsImpostor(archery1Box, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0
       }, scene);
       archery.physicsImpostor = new BABYLON.PhysicsImpostor(archery, BABYLON.PhysicsImpostor.NoImpostor, {
         mass: 0
       }, scene);
-      const fenceBox = new BABYLON.MeshBuilder.CreateBox ('fenceBox', {width: 0.5, height:3, depth:27},scene)
-      fenceBox.position = new BABYLON.Vector3(85,3.5,-92);
-      fenceBox.isVisible=false;
+      const fenceBox = new BABYLON.MeshBuilder.CreateBox('fenceBox', {width: 0.5, height: 3, depth: 27}, scene)
+      fenceBox.position = new BABYLON.Vector3(85, 3.5, -92);
+      fenceBox.isVisible = false;
       fenceBox.physicsImpostor = new BABYLON.PhysicsImpostor(fenceBox, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0
       }, scene);
@@ -443,13 +471,13 @@ const startGame = (time, countTreasure)=>{
       barrack.position = new BABYLON.Vector3(0, 3.5, -90);
       barrack.rotation = new BABYLON.Vector3(0, 0, 0);
       shadowGenerator.addShadowCaster(barrack);
-      const barrackBox = new BABYLON.MeshBuilder.CreateBox('barrackBox', {width: 30, height: 10, depth:8}, scene)
+      const barrackBox = new BABYLON.MeshBuilder.CreateBox('barrackBox', {width: 30, height: 10, depth: 8}, scene)
       barrackBox.position = new BABYLON.Vector3(0, 5.5, -89.5);
       barrackBox.isVisible = false;
       barrackBox.physicsImpostor = new BABYLON.PhysicsImpostor(barrackBox, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0
       }, scene);
-      const barrack1Box = new BABYLON.MeshBuilder.CreateBox('barrack1Box', {width: 13, height: 10, depth:30}, scene)
+      const barrack1Box = new BABYLON.MeshBuilder.CreateBox('barrack1Box', {width: 13, height: 10, depth: 30}, scene)
       barrack1Box.position = new BABYLON.Vector3(0, 5.5, -89.5);
       barrack1Box.isVisible = false;
       barrack1Box.physicsImpostor = new BABYLON.PhysicsImpostor(barrack1Box, BABYLON.PhysicsImpostor.BoxImpostor, {
@@ -462,19 +490,23 @@ const startGame = (time, countTreasure)=>{
       barrack.addChild(barrack1Box);
     });
 //Create towerHouse
-    const createTowerHouse = (x,z)=>{
+    const createTowerHouse = (x, z) => {
       new BABYLON.SceneLoader.ImportMeshAsync(
         null,
         "./public/",
         "TowerHouse.gltf", scene).then((result) => {
         const [towerHouse] = result.meshes;
-        towerHouse.scaling = new BABYLON.Vector3(18,18,18);
-        towerHouse.position = new BABYLON.Vector3(x,3.5,z);
-        towerHouse.rotation = new BABYLON.Vector3(0,-3.14,0);
+        towerHouse.scaling = new BABYLON.Vector3(18, 18, 18);
+        towerHouse.position = new BABYLON.Vector3(x, 3.5, z);
+        towerHouse.rotation = new BABYLON.Vector3(0, -3.14, 0);
         shadowGenerator.addShadowCaster(towerHouse);
-        const towerHouseBox = new BABYLON.MeshBuilder.CreateBox ('towerHouseBox', {width: 20, height:10, depth:20},scene)
-        towerHouseBox.position = new BABYLON.Vector3(x,5.5,z);
-        towerHouseBox.isVisible=false;
+        const towerHouseBox = new BABYLON.MeshBuilder.CreateBox('towerHouseBox', {
+          width: 20,
+          height: 10,
+          depth: 20
+        }, scene)
+        towerHouseBox.position = new BABYLON.Vector3(x, 5.5, z);
+        towerHouseBox.isVisible = false;
         towerHouseBox.physicsImpostor = new BABYLON.PhysicsImpostor(towerHouseBox, BABYLON.PhysicsImpostor.BoxImpostor, {
           mass: 0
         }, scene);
@@ -487,8 +519,8 @@ const startGame = (time, countTreasure)=>{
     createTowerHouse(65, -95);
     createTowerHouse(32, -95);
 //Create chest
-    const treasureArray= []
-    const createTreasure = (x, z)=>{
+    const treasureArray = []
+    const createTreasure = (x, z) => {
       new BABYLON.SceneLoader.ImportMeshAsync(
         null,
         "./public/",
@@ -501,11 +533,11 @@ const startGame = (time, countTreasure)=>{
         treasureArray.push(result.meshes[2])
       })
     }
-    for(let i =0; i<countTreasure; i++){
-      if(i>= countTreasure/2){
+    for (let i = 0; i < countTreasure; i++) {
+      if (i >= countTreasure / 2) {
         createTreasure((Math.floor(Math.random() * 100) + 1), (Math.floor(Math.random() * 100) + 1));
         countAll.innerHTML = countTreasure;
-      }else{
+      } else {
         createTreasure((Math.floor(Math.random() * 100) + 1), (Math.floor(Math.random() * -100) - 1));
         countAll.innerHTML = countTreasure;
       }
@@ -526,6 +558,8 @@ const startGame = (time, countTreasure)=>{
       playerBox.position = new BABYLON.Vector3(-56, 5, 0)
       playerBox.isVisible = false;
       playerRoot.addChild(playerBox);
+      runAudio.attachToMesh(playerBox);
+      fastRunAudio.attachToMesh(playerBox);
       playerBox.physicsImpostor = new BABYLON.PhysicsImpostor(playerBox, BABYLON.PhysicsImpostor.BoxImpostor, {
         mass: 0,
         restitution: 0
@@ -535,7 +569,6 @@ const startGame = (time, countTreasure)=>{
         restitution: 1,
         friction: 5
       }, scene);
-
       const playIdle = (play) => {
         result.animationGroups.forEach((ag) => {
           if (ag.name === "Idle") {
@@ -565,7 +598,6 @@ const startGame = (time, countTreasure)=>{
       };
       playIdle()
       playerRoot.rotationQuaternion = new BABYLON.Quaternion.Identity();
-
       const targetPoint = playerRoot.position.clone();
       const targetRotation = playerRoot.rotationQuaternion.clone();
 
@@ -594,7 +626,7 @@ const startGame = (time, countTreasure)=>{
         const code = eventData.event.code;
 
         if (code === 'ShiftLeft' && eventData.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
-          speed = 15;
+          speed = 16;
         } else if (code === 'ShiftLeft' && eventData.type === BABYLON.KeyboardEventTypes.KEYUP) {
           speed = 8;
         }
@@ -613,11 +645,15 @@ const startGame = (time, countTreasure)=>{
       });
       scene.onBeforeRenderObservable.add(() => {
 
-        for(let i = 0; i<treasureArray.length; i++){
-          if (playerBox.intersectsMesh(treasureArray[i])){
-            if(treasureArray[i].parent){
+        for (let i = 0; i < treasureArray.length; i++) {
+          if (playerBox.intersectsMesh(treasureArray[i])) {
+            if (treasureArray[i].parent) {
               treasureArray[i].parent.dispose();
-              countProgress.innerHTML = parseInt(++countProgress.innerHTML)
+              countProgress.innerHTML = parseInt(++countProgress.innerHTML);
+              treasureAudio.play()
+              if(countProgress.innerHTML == treasureArray.length){
+                victoryAudio.play();
+              }
             }
           }
         }
@@ -652,11 +688,17 @@ const startGame = (time, countTreasure)=>{
         const diff = targetPoint.subtract(playerRoot.position);
         if (diff.length() < maxDelta) {
           playIdle();
+          runAudio.stop()
+          fastRunAudio.stop()
           return;
         }
-
+        if (!runAudio.isPlaying) {
+          runAudio.play()
+          if(!(fastRunAudio.isPlaying) && speed === 16){
+            fastRunAudio.play()
+          }
+        }
         playRun();
-
         const dir = diff.normalize();
 
         const velocity = dir.scale(speed * deltaTime);
@@ -666,6 +708,52 @@ const startGame = (time, countTreasure)=>{
         camera.target.y += CAMERA_HEIGHT;
       });
     });
+    //Restart
+    gameOverScreen.addEventListener('click', ()=>{
+      window.location.reload();
+    })
+    // Timer
+    const startTimer = (time) => {
+      let nowDate = new Date().getMinutes();
+      let countDownTime = new Date().setMinutes(nowDate + time)
+      let updateTimer = setInterval(() => {
+        // Получаем текущее дату и время
+        let now = new Date().getTime();
+        // Находим разницу между текущим временем и заданным
+        let difference = countDownTime - now;
+
+        // Рассчитываем дни, часы, минуты и секунды
+        let minutesDif = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        let secondsDif = Math.floor((difference % (1000 * 60)) / 1000);
+        // Вставляем значения в таймер
+        timer.innerHTML = `${minutesDif}:${secondsDif}`
+
+        // Когда таймер дойдет до заданной даты и времени
+        if (minutesDif === 0 && secondsDif > 0) {
+          timer.classList.add('active')
+          timer.style.animation = 'timeOutAnim 1.0s ease-in infinite';
+          fonAudio.stop();
+          if(!timeOutAudio.isPlaying){
+            timeOutAudio.play()
+          }
+        }else{
+          timeOutAudio.stop()
+          if(!fonAudio.isPlaying){
+            fonAudio.play()
+          }
+        }
+        if (difference < 0) {
+          clearInterval(updateTimer);
+          timer.style.animation='none';
+          timer.innerHTML = "0:0"
+          gameOverScreen.style.display = 'flex'
+          gameOverAudio.play();
+        }
+        // Обновляем функцию с интервалом 1 секунда
+      }, 100);
+    }
+
+    startTimer(time);
 
     // Water
     const waterMesh = BABYLON.Mesh.CreateGround("waterMesh", 1024, 1024, 32, scene, false);
@@ -722,11 +810,18 @@ const startGame = (time, countTreasure)=>{
         }
       });
     }
+
     addInspectorForScene(scene);
 
     engine.runRenderLoop(function () {
       if (scene) {
         scene.render();
+        window.addEventListener('keydown', ()=>{
+          if(!BABYLON.Engine.audioEngine.unlocked){
+            BABYLON.Engine.audioEngine.unlock();
+            BABYLON.Engine.audioEngine.setGlobalVolume(1)
+          }
+        })
       }
     });
   });
@@ -734,33 +829,5 @@ const startGame = (time, countTreasure)=>{
   window.addEventListener("resize", function () {
     engine.resize();
   });
-// timer
-  const startTimer = (time)=>{
-    let nowDate = new Date().getMinutes();
-    let countDownTime = new Date().setMinutes(nowDate + time)
-    let updateTimer = setInterval(()=> {
-      // Получаем текущее дату и время
-      let now = new Date().getTime();
-      // Находим разницу между текущим временем и заданным
-      let difference = countDownTime - now;
-
-      // Рассчитываем дни, часы, минуты и секунды
-      let minutesDif = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      let secondsDif = Math.floor((difference % (1000 * 60)) / 1000);
-      // Вставляем значения в таймер
-      timer.innerHTML = `${minutesDif}:${secondsDif}`
-
-      // Когда таймер дойдет до заданной даты и времени
-      if (secondsDif < 30 && minutesDif === 0){
-        timer.classList.add('active')
-      }
-      if (difference < 0) {
-        clearInterval(updateTimer);
-      }
-      // Обновляем функцию с интервалом 1 секунда
-    }, 100);
-  }
-
-  startTimer(time)
 }
-startGame(2, 10)
+startGame(5, 10)
