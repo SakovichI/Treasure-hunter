@@ -26,6 +26,7 @@ const startGame = (time, countTreasure) => {
       new BABYLON.Vector3(-55, CAMERA_HEIGHT, 5),
       scene
     );
+    camera.upperBetaLimit = Math.PI / 2.2;
     camera.attachControl(canvas, true)
     camera.minZ = 0.01;
 
@@ -42,7 +43,7 @@ const startGame = (time, countTreasure) => {
     BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
     const fonAudio = new BABYLON.Sound("Music", "./audio/main-menu.mp3", scene, null, {
       loop: true,
-      autoplay:true,
+      autoplay: true,
       volume: 0.05
     });
     const runAudio = new BABYLON.Sound("run", "./audio/run.mp3", scene, null, {
@@ -543,7 +544,78 @@ const startGame = (time, countTreasure) => {
       }
 
     }
+//Guardians
+    const guardArray = [];
+    const createGuard = () => {
+      const guard = new BABYLON.SceneLoader.ImportMeshAsync(
+        null,
+        "./public/",
+        "guard.gltf",
+        scene
+      ).then((result) => {
+        const [guardRoot] = result.meshes;
+        result.meshes[0].rotation.y = -2;
+        guardRoot.position = new BABYLON.Vector3(80, 3.5, -12);
+        guardRoot.scaling=new BABYLON.Vector3(1.2,1.2,1.2)
+        shadowGenerator.addShadowCaster(guardRoot);
+        guardRoot.rotate(BABYLON.Axis.Y, BABYLON.Tools.ToRadians(90), BABYLON.Space.LOCAL);
+        const startRotation = guardRoot.rotationQuaternion.clone();
+        const playWalk = () => {
+          result.animationGroups.forEach((ag) => {
+            if (ag.name === "Walk") {
+              ag.start(true);
+            } else {
+              ag.stop();
+            }
+          });
+        };
+        playWalk();
+        const guardArea = BABYLON.MeshBuilder.CreateDisc("guardArea", {radius: 10, arc:0}, scene);
+        guardArea.position = new BABYLON.Vector3(80, 3.8, -12);
+        guardArea.rotation = new BABYLON.Vector3(1.55,0,0)
+        const redMat = new BABYLON.StandardMaterial("redMat", scene);
+        redMat.diffuseColor = new BABYLON.Color3(1, 0, 0);
+        redMat.alpha=0.1;
+        guardArea.material = redMat;
+        guardRoot.addChild(guardArea);
+        let distance = 0;
+        let step = 0.04;
+        let p = 0;
+        const walk = function (turn, dist) {
+          this.turn = turn;
+          this.dist = dist;
+        }
 
+        const track = [];
+        track.push(new walk(90, 10));
+        track.push(new walk(90, 45));
+        track.push(new walk(-90, 90));
+        track.push(new walk(-90, 120));
+        track.push(new walk(90, 248));
+        track.push(new walk(90, 278));
+        track.push(new walk(-90, 406));
+        track.push(new walk(90, 434));
+        track.push(new walk(90, 435));
+        track.push(new walk(90, 557));
+        track.push(new walk(0, 592));
+        scene.onBeforeRenderObservable.add(() => {
+          guardRoot.movePOV(0, 0, -step);
+          distance += step;
+          if (distance > track[p].dist) {
+            guardRoot.rotate(BABYLON.Axis.Y, BABYLON.Tools.ToRadians(track[p].turn), BABYLON.Space.LOCAL);
+            p +=1;
+            p %= track.length;
+            if (p === 0) {
+              distance = 0;
+              guardRoot.position = new BABYLON.Vector3(80, 3.5, -12);
+              guardRoot.rotationQuaternion = startRotation.clone();
+            }
+          }
+
+        })
+      });
+    }
+    createGuard();
 //Персонаж
     const person = new BABYLON.SceneLoader.ImportMeshAsync(
       null,
@@ -651,7 +723,7 @@ const startGame = (time, countTreasure) => {
               treasureArray[i].parent.dispose();
               countProgress.innerHTML = parseInt(++countProgress.innerHTML);
               treasureAudio.play()
-              if(countProgress.innerHTML == treasureArray.length){
+              if (countProgress.innerHTML == treasureArray.length) {
                 victoryAudio.play();
               }
             }
@@ -694,7 +766,7 @@ const startGame = (time, countTreasure) => {
         }
         if (!runAudio.isPlaying) {
           runAudio.play()
-          if(!(fastRunAudio.isPlaying) && speed === 16){
+          if (!(fastRunAudio.isPlaying) && speed === 16) {
             fastRunAudio.play()
           }
         }
@@ -709,7 +781,7 @@ const startGame = (time, countTreasure) => {
       });
     });
     //Restart
-    gameOverScreen.addEventListener('click', ()=>{
+    gameOverScreen.addEventListener('click', () => {
       window.location.reload();
     })
     // Timer
@@ -733,18 +805,18 @@ const startGame = (time, countTreasure) => {
           timer.classList.add('active')
           timer.style.animation = 'timeOutAnim 1.0s ease-in infinite';
           fonAudio.stop();
-          if(!timeOutAudio.isPlaying){
+          if (!timeOutAudio.isPlaying) {
             timeOutAudio.play()
           }
-        }else{
+        } else {
           timeOutAudio.stop()
-          if(!fonAudio.isPlaying){
+          if (!fonAudio.isPlaying) {
             fonAudio.play()
           }
         }
         if (difference < 0) {
           clearInterval(updateTimer);
-          timer.style.animation='none';
+          timer.style.animation = 'none';
           timer.innerHTML = "0:0"
           gameOverScreen.style.display = 'flex'
           gameOverAudio.play();
@@ -771,7 +843,7 @@ const startGame = (time, countTreasure) => {
 
     return scene;
   };
-
+//Create scene
   createScene().then((scene) => {
     async function addInspectorForScene(scene) {
       const switchDebugLayer = () => {
@@ -816,8 +888,8 @@ const startGame = (time, countTreasure) => {
     engine.runRenderLoop(function () {
       if (scene) {
         scene.render();
-        window.addEventListener('keydown', ()=>{
-          if(!BABYLON.Engine.audioEngine.unlocked){
+        window.addEventListener('keydown', () => {
+          if (!BABYLON.Engine.audioEngine.unlocked) {
             BABYLON.Engine.audioEngine.unlock();
             BABYLON.Engine.audioEngine.setGlobalVolume(1)
           }
@@ -830,4 +902,4 @@ const startGame = (time, countTreasure) => {
     engine.resize();
   });
 }
-startGame(5, 10)
+startGame(40, 10)
