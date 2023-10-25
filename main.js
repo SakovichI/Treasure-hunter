@@ -1,8 +1,10 @@
+
 const canvas = document.querySelector("#render-canvas");
 const timer = document.querySelector('.header__timer');
 const countProgress = document.querySelector('.count__progress');
 const countAll = document.querySelector('.count__need');
 const gameOverScreen = document.querySelector('.game-over')
+const allTexture=[];
 const startGame = (time, countTreasure) => {
   const engine = new BABYLON.Engine(canvas, true, {
     preserveDrawingBuffer: true,
@@ -203,6 +205,7 @@ const startGame = (time, countTreasure) => {
       wall.addChild(wallFrontBox);
       wall.addChild(wallBack1Box);
       wall.addChild(wallBack2Box);
+      allTexture.push(wall);
     })
     const port = new BABYLON.SceneLoader.ImportMeshAsync(
       null,
@@ -308,6 +311,7 @@ const startGame = (time, countTreasure) => {
         }, scene);
         house.addChild(house1Box);
         house.addChild(house2Box);
+        allTexture.push(house);
       })
     }
     //Row1 house
@@ -339,6 +343,7 @@ const startGame = (time, countTreasure) => {
           mass: 0
         }, scene);
         farm.addChild(farmBox);
+        allTexture.push(farm);
       })
     }
     for (let i = 0; i < 5; i++) {
@@ -364,6 +369,7 @@ const startGame = (time, countTreasure) => {
         mass: 0
       }, scene);
       center.addChild(centerBox);
+      allTexture.push(centerBox);
     })
 //Create Market
     const creatMarket = (x, z, rotate) => {
@@ -395,6 +401,8 @@ const startGame = (time, countTreasure) => {
         }, scene);
         market.addChild(market1Box);
         market.addChild(market2Box);
+        allTexture.push(market1Box);
+        allTexture.push(market2Box);
       })
     }
     for (let i = 0; i < 2; i++) {
@@ -423,6 +431,7 @@ const startGame = (time, countTreasure) => {
         mass: 0
       }, scene);
       temple.addChild(templeBox);
+      allTexture.push(templeBox);
     })
     //Create Archery
     new BABYLON.SceneLoader.ImportMeshAsync(
@@ -461,6 +470,9 @@ const startGame = (time, countTreasure) => {
       archery.addChild(archeryBox);
       archery.addChild(archery1Box);
       archery.addChild(fenceBox);
+      allTexture.push(archeryBox);
+      allTexture.push(archery1Box);
+      allTexture.push(fenceBox);
     })
     //Create Barracks
     new BABYLON.SceneLoader.ImportMeshAsync(
@@ -489,6 +501,8 @@ const startGame = (time, countTreasure) => {
       }, scene);
       barrack.addChild(barrackBox);
       barrack.addChild(barrack1Box);
+      allTexture.push(barrackBox);
+      allTexture.push(barrack1Box);
     });
 //Create towerHouse
     const createTowerHouse = (x, z) => {
@@ -515,6 +529,7 @@ const startGame = (time, countTreasure) => {
           mass: 0
         }, scene);
         towerHouse.addChild(towerHouseBox);
+        allTexture.push(towerHouseBox);
       })
     }
     createTowerHouse(65, -95);
@@ -534,7 +549,8 @@ const startGame = (time, countTreasure) => {
         treasureArray.push(result.meshes[2])
       })
     }
-    for (let i = 0; i < countTreasure; i++) {
+
+    for (let i = 0; i<countTreasure; i++) {
       if (i >= countTreasure / 2) {
         createTreasure((Math.floor(Math.random() * 100) + 1), (Math.floor(Math.random() * 100) + 1));
         countAll.innerHTML = countTreasure;
@@ -542,8 +558,9 @@ const startGame = (time, countTreasure) => {
         createTreasure((Math.floor(Math.random() * 100) + 1), (Math.floor(Math.random() * -100) - 1));
         countAll.innerHTML = countTreasure;
       }
-
     }
+
+
 //Guardians
     const guardArray = [];
     const createGuard = () => {
@@ -581,6 +598,7 @@ const startGame = (time, countTreasure) => {
         let distance = 0;
         let step = 0.04;
         let p = 0;
+        guardArray.push(guardArea);
         const walk = function (turn, dist) {
           this.turn = turn;
           this.dist = dist;
@@ -727,6 +745,12 @@ const startGame = (time, countTreasure) => {
                 victoryAudio.play();
               }
             }
+          }
+        }
+        for(let i=0; i<guardArray.length; i++){
+          if (playerBox.intersectsMesh(guardArray[i])) {
+            gameOverScreen.style.display = 'flex'
+            gameOverAudio.play();
           }
         }
 
@@ -902,4 +926,7 @@ const startGame = (time, countTreasure) => {
     engine.resize();
   });
 }
-startGame(40, 10)
+window.addEventListener('load', ()=>{
+  startGame(2, 10)
+})
+
