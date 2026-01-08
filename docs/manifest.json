@@ -1,11 +1,11 @@
 {
   "name": "Treasure hunter",
-  "star_url": "index.html",
+  "start_url": "/Treasure-hunter/index.html",
   "display": "fullscreen",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "img/Chest_Ingots.png",
+      "src": "/Treasure-hunter/assets/img/Chest_Ingots.png",
       "sizes": "1000x1000",
       "type": "image/png"
     }

@@ -1,8 +1,17 @@
 import { defineConfig } from 'vite'
-import { copyFileSync, mkdirSync, readdirSync, existsSync, unlinkSync, rmdirSync } from 'fs'
-import { join } from 'path'
+import {
+  copyFileSync,
+  mkdirSync,
+  readdirSync,
+  existsSync,
+  unlinkSync,
+  rmdirSync,
+  writeFileSync,
+} from 'fs'
+import { join, extname } from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
+import { createReadStream, statSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -14,19 +23,54 @@ function organizeAssetsPlugin() {
     configureServer(server) {
       // В dev режиме обслуживаем /assets/... из public
       // Так как root: 'src' и publicDir: '../public',
-      // Vite автоматически обслуживает файлы из public по корневому пути
-      // Нам нужно перенаправить /assets/... на правильные пути
+      // нужно обработать запросы к /assets/... и отдать файлы из public
       server.middlewares.use((req, res, next) => {
         if (req.url.startsWith('/assets/models/')) {
           const fileName = req.url.replace('/assets/models/', '')
-          // Файлы из public доступны напрямую, но нам нужно изменить путь
-          req.url = `/${fileName}`
+          const filePath = join(__dirname, 'public', fileName)
+
+          if (existsSync(filePath)) {
+            const stat = statSync(filePath)
+            res.setHeader('Content-Type', 'model/gltf+json')
+            res.setHeader('Content-Length', stat.size)
+            createReadStream(filePath).pipe(res)
+            return
+          }
         } else if (req.url.startsWith('/assets/audio/')) {
           const filePath = req.url.replace('/assets/audio/', '')
-          req.url = `/audio/${filePath}`
+          const fullPath = join(__dirname, 'public', 'audio', filePath)
+
+          if (existsSync(fullPath)) {
+            const stat = statSync(fullPath)
+            const ext = extname(fullPath).toLowerCase()
+            const mimeTypes = {
+              '.mp3': 'audio/mpeg',
+              '.wav': 'audio/wav',
+              '.ogg': 'audio/ogg',
+            }
+            res.setHeader('Content-Type', mimeTypes[ext] || 'audio/mpeg')
+            res.setHeader('Content-Length', stat.size)
+            createReadStream(fullPath).pipe(res)
+            return
+          }
         } else if (req.url.startsWith('/assets/img/')) {
           const filePath = req.url.replace('/assets/img/', '')
-          req.url = `/img/${filePath}`
+          const fullPath = join(__dirname, 'public', 'img', filePath)
+
+          if (existsSync(fullPath)) {
+            const stat = statSync(fullPath)
+            const ext = extname(fullPath).toLowerCase()
+            const mimeTypes = {
+              '.png': 'image/png',
+              '.jpg': 'image/jpeg',
+              '.jpeg': 'image/jpeg',
+              '.webp': 'image/webp',
+            }
+            res.setHeader('Content-Type', mimeTypes[ext] || 'image/png')
+            res.setHeader('Content-Length', stat.size)
+            createReadStream(fullPath).pipe(res)
+            return
+          }
         }
         next()
       })
@@ -92,6 +136,12 @@ function organizeAssetsPlugin() {
         copyFileSync(manifestPath, join(distDir, 'manifest.json'))
       }
 
+      // Создаем .nojekyll файл для GitHub Pages
+      const nojekyllPath = join(distDir, '.nojekyll')
+      if (!existsSync(nojekyllPath)) {
+        writeFileSync(nojekyllPath, '')
+      }
+
       // Удаляем файлы, которые Vite автоматически скопировал в корень dist
       // (они теперь в assets/)
       try {
@@ -138,6 +188,7 @@ function organizeAssetsPlugin() {
 }
 
 export default defineConfig({
+  base: '/Treasure-hunter/',
   root: 'src',
   server: {
     port: 3000,
