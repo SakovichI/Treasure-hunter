@@ -7,12 +7,10 @@ export function createEngine(canvas) {
     disableWebGL2Support: false,
   })
 
-  // Setup audio engine
   if (engine.audioEngine) {
     engine.audioEngine.useCustomUnlockedButton = true
   }
 
-  // Handle window resize
   window.addEventListener('resize', () => {
     engine.resize()
   })

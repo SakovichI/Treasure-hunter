@@ -2,7 +2,6 @@ import { Scene, Vector3, CannonJSPlugin } from '@babylonjs/core'
 import '@babylonjs/loaders'
 import * as CANNON from 'cannon-es'
 
-// Make CANNON available globally for Babylon.js
 if (typeof window !== 'undefined') {
   window.CANNON = CANNON
 }
