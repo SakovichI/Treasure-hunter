@@ -16,6 +16,20 @@ import { createReadStream, statSync } from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+// Plugin для инжекции BASE_URL в HTML (только при сборке)
+function injectBaseUrlPlugin() {
+  return {
+    name: 'inject-base-url',
+    apply: 'build', // Только при сборке
+    transformIndexHtml(html) {
+      const base = '/Treasure-hunter/'
+      return html
+        .replace(/href="\/manifest\.json"/g, `href="${base}manifest.json"`)
+        .replace(/src="\/assets\//g, `src="${base}assets/`)
+    },
+  }
+}
+
 // Plugin для обслуживания assets в dev режиме и организации при сборке
 function organizeAssetsPlugin() {
   return {
@@ -24,9 +38,16 @@ function organizeAssetsPlugin() {
       // В dev режиме обслуживаем /assets/... из public
       // Так как root: 'src' и publicDir: '../public',
       // нужно обработать запросы к /assets/... и отдать файлы из public
+      // Также обрабатываем запросы с BASE_URL (например, /Treasure-hunter/assets/...)
       server.middlewares.use((req, res, next) => {
-        if (req.url.startsWith('/assets/models/')) {
-          const fileName = req.url.replace('/assets/models/', '')
+        // Убираем BASE_URL из запроса для обработки
+        let url = req.url
+        if (url.startsWith('/Treasure-hunter/')) {
+          url = url.replace('/Treasure-hunter', '')
+        }
+
+        if (url.startsWith('/assets/models/')) {
+          const fileName = url.replace('/assets/models/', '')
           const filePath = join(__dirname, 'public', fileName)
 
           if (existsSync(filePath)) {
@@ -36,8 +57,8 @@ function organizeAssetsPlugin() {
             createReadStream(filePath).pipe(res)
             return
           }
-        } else if (req.url.startsWith('/assets/audio/')) {
-          const filePath = req.url.replace('/assets/audio/', '')
+        } else if (url.startsWith('/assets/audio/')) {
+          const filePath = url.replace('/assets/audio/', '')
           const fullPath = join(__dirname, 'public', 'audio', filePath)
 
           if (existsSync(fullPath)) {
@@ -53,8 +74,8 @@ function organizeAssetsPlugin() {
             createReadStream(fullPath).pipe(res)
             return
           }
-        } else if (req.url.startsWith('/assets/img/')) {
-          const filePath = req.url.replace('/assets/img/', '')
+        } else if (url.startsWith('/assets/img/')) {
+          const filePath = url.replace('/assets/img/', '')
           const fullPath = join(__dirname, 'public', 'img', filePath)
 
           if (existsSync(fullPath)) {
@@ -187,39 +208,44 @@ function organizeAssetsPlugin() {
   }
 }
 
-export default defineConfig({
-  base: '/Treasure-hunter/',
-  root: 'src',
-  server: {
-    port: 3000,
-    open: true,
-  },
-  build: {
-    outDir: '../docs',
-    assetsDir: 'assets',
-    emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        assetFileNames: assetInfo => {
-          const info = assetInfo.name.split('.')
-          const ext = info[info.length - 1]
+export default defineConfig(({ command }) => {
+  // В dev режиме base = '/', в production = '/Treasure-hunter/'
+  const base = command === 'serve' ? '/' : '/Treasure-hunter/'
 
-          // Организуем ресурсы по типам
-          if (ext === 'gltf' || ext === 'glb') {
-            return 'assets/models/[name][extname]'
-          }
-          if (ext === 'mp3' || ext === 'wav' || ext === 'ogg') {
-            return 'assets/audio/[name][extname]'
-          }
-          if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') {
-            return 'assets/img/[name][extname]'
-          }
+  return {
+    base,
+    root: 'src',
+    server: {
+      port: 3000,
+      open: true,
+    },
+    build: {
+      outDir: '../docs',
+      assetsDir: 'assets',
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          assetFileNames: assetInfo => {
+            const info = assetInfo.name.split('.')
+            const ext = info[info.length - 1]
 
-          return 'assets/[name][extname]'
+            // Организуем ресурсы по типам
+            if (ext === 'gltf' || ext === 'glb') {
+              return 'assets/models/[name][extname]'
+            }
+            if (ext === 'mp3' || ext === 'wav' || ext === 'ogg') {
+              return 'assets/audio/[name][extname]'
+            }
+            if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') {
+              return 'assets/img/[name][extname]'
+            }
+
+            return 'assets/[name][extname]'
+          },
         },
       },
     },
-  },
-  publicDir: '../public',
-  plugins: [organizeAssetsPlugin()],
+    publicDir: '../public',
+    plugins: [injectBaseUrlPlugin(), organizeAssetsPlugin()],
+  }
 })
